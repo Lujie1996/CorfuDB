@@ -15,7 +15,7 @@ import org.corfudb.runtime.object.ICorfuSMRProxyInternal;
 /**
  * A snapshot transactional context.
  *
- * <p>Given the snapshot (log address) given by the TxBuilder,
+ * <p>Given the snapshot (log address) given by the TxnContext,
  * access all objects within the same snapshot during the course of
  * this transactional context.
  *

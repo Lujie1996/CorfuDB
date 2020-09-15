@@ -13,6 +13,7 @@ import java.util.UUID;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.io.FileUtils;
 
+import org.corfudb.runtime.collections.TxnContext;
 import org.junit.jupiter.api.Test;
 
 import org.corfudb.runtime.CorfuRuntime;
@@ -21,7 +22,6 @@ import org.corfudb.runtime.collections.CorfuStore;
 import org.corfudb.runtime.collections.CorfuTable;
 import org.corfudb.runtime.collections.Table;
 import org.corfudb.runtime.collections.TableOptions;
-import org.corfudb.runtime.collections.TxBuilder;
 import org.corfudb.test.SampleSchema;
 import org.corfudb.test.SampleSchema.ManagedResources;
 import org.corfudb.test.SampleSchema.Uuid;
@@ -84,8 +84,9 @@ public class CorfuStorePerfIT extends  AbstractIT {
         long start = System.currentTimeMillis();
         // Create & Register the table.
         // This is required to initialize the table for the current corfu client.
+        Table<Uuid, EventInfo, ManagedResources> table = null;
         try {
-            Table<Uuid, EventInfo, ManagedResources> table = corfuStore.openTable(
+            table = corfuStore.openTable(
                 nsxManager,
                 tableName,
                 Uuid.class,
@@ -109,8 +110,9 @@ public class CorfuStorePerfIT extends  AbstractIT {
         ManagedResources metadata = ManagedResources.newBuilder().setCreateUser("Pan").build();
 
         // Creating a transaction builder.
-        TxBuilder tx = corfuStore.tx(nsxManager);
-        tx.create(tableName, Uuid.newBuilder().setLsb(0L).setMsb(0L).build(),
+        TxnContext tx = corfuStore.txn(nsxManager);
+        assert table != null;
+        tx.put(table, Uuid.newBuilder().setLsb(0L).setMsb(0L).build(),
             SampleSchema.EventInfo.newBuilder().setName("simpleCRUD").build(),
             metadata);
         for (int i = 0; i < count; i++) {
@@ -127,7 +129,7 @@ public class CorfuStorePerfIT extends  AbstractIT {
                 .setEventTime(i)
                 .build());
 
-            tx.update(tableName, uuids.get(i), events.get(i), metadata);
+            tx.put(table, uuids.get(i), events.get(i), metadata);
             tx.commit();
         }
 

@@ -11,7 +11,7 @@ import org.corfudb.runtime.collections.StreamListener;
 import org.corfudb.runtime.collections.Table;
 import org.corfudb.runtime.collections.TableSchema;
 import org.corfudb.runtime.collections.TableOptions;
-import org.corfudb.runtime.collections.TxBuilder;
+import org.corfudb.runtime.collections.TxnContext;
 import org.corfudb.test.SampleSchema.Uuid;
 import org.junit.Before;
 import org.junit.Test;
@@ -135,8 +135,8 @@ public class StreamingIT extends AbstractIT {
         final int numUpdates = 3;
         for (int i = 0; i < numUpdates; i++) {
             Uuid uuid = Uuid.newBuilder().setMsb(i).setLsb(i).build();
-            TxBuilder tx = store.tx("n1");
-            tx.update("t1", uuid, uuid, uuid).commit();
+            TxnContext tx = store.txn("n1");
+            tx.put(n1t1, uuid, uuid, uuid).commit();
         }
 
         // Subscribe to streaming updates from the table.
@@ -166,9 +166,9 @@ public class StreamingIT extends AbstractIT {
         store.subscribe(s2n1t1, "n1",
                 Collections.singletonList(new TableSchema("t1", Uuid.class, Uuid.class, Uuid.class)), null);
 
-        TxBuilder tx = store.tx("n1");
+        TxnContext tx = store.txn("n1");
         Uuid uuid0 = Uuid.newBuilder().setMsb(0).setLsb(0).build();
-        tx.delete("t1", uuid0).commit();
+        tx.delete(n1t1, uuid0).commit();
 
         TimeUnit.SECONDS.sleep(2);
 
@@ -201,9 +201,9 @@ public class StreamingIT extends AbstractIT {
         store.unsubscribe(s1n1t1);
         TimeUnit.SECONDS.sleep(2);
 
-        tx = store.tx("n1");
+        tx = store.txn("n1");
         Uuid uuid1 = Uuid.newBuilder().setMsb(1).setLsb(1).build();
-        tx.delete("t1", uuid1).commit();
+        tx.delete(n1t1, uuid1).commit();
 
         // s1n1t1 should see no new updates, where as s2n1t1 should see the latest delete.
         TimeUnit.SECONDS.sleep(2);
@@ -263,10 +263,10 @@ public class StreamingIT extends AbstractIT {
         final int numUpdates = 3;
         for (int i = 0; i < numUpdates; i++) {
             Uuid uuid = Uuid.newBuilder().setMsb(i).setLsb(i).build();
-            TxBuilder tx = store.tx("n1");
-            tx.update("t1", uuid, uuid, uuid).commit();
-            TxBuilder tx2 = store.tx("n2");
-            tx2.update("t1", uuid, uuid, uuid).commit();
+            TxnContext tx = store.txn("n1");
+            tx.put(n1t1, uuid, uuid, uuid).commit();
+            TxnContext tx2 = store.txn("n2");
+            tx2.put(n2t1, uuid, uuid, uuid).commit();
         }
 
         // Subscribe to streaming updates from the table1.

@@ -178,8 +178,8 @@ public class CorfuReplicationClusterConfigIT extends AbstractIT {
         log.info("Log replication succeeds without config change!");
 
         // Perform a role switch
-        corfuStore.tx(DefaultClusterManager.CONFIG_NAMESPACE)
-                .update(DefaultClusterManager.CONFIG_TABLE_NAME, DefaultClusterManager.OP_SWITCH,
+        corfuStore.txn(DefaultClusterManager.CONFIG_NAMESPACE)
+                .put(configTable, DefaultClusterManager.OP_SWITCH,
                         DefaultClusterManager.OP_SWITCH, DefaultClusterManager.OP_SWITCH)
                 .commit();
         assertThat(configTable.count()).isOne();
@@ -205,8 +205,8 @@ public class CorfuReplicationClusterConfigIT extends AbstractIT {
         assertThat(mapStandby.size()).isEqualTo(thirdBatch);
 
         // Second Role Switch
-        corfuStore.tx(DefaultClusterManager.CONFIG_NAMESPACE)
-                .update(DefaultClusterManager.CONFIG_TABLE_NAME, DefaultClusterManager.OP_SWITCH,
+        corfuStore.txn(DefaultClusterManager.CONFIG_NAMESPACE)
+                .put(configTable, DefaultClusterManager.OP_SWITCH,
                         DefaultClusterManager.OP_SWITCH, DefaultClusterManager.OP_SWITCH)
                 .commit();
         assertThat(configTable.count()).isOne();
@@ -265,8 +265,8 @@ public class CorfuReplicationClusterConfigIT extends AbstractIT {
 
         // Perform a role switch during transfer
         assertThat(mapStandby.size()).isEqualTo(0);
-        corfuStore.tx(DefaultClusterManager.CONFIG_NAMESPACE)
-                .update(DefaultClusterManager.CONFIG_TABLE_NAME, DefaultClusterManager.OP_SWITCH,
+        corfuStore.txn(DefaultClusterManager.CONFIG_NAMESPACE)
+                .put(configTable, DefaultClusterManager.OP_SWITCH,
                         DefaultClusterManager.OP_SWITCH, DefaultClusterManager.OP_SWITCH)
                 .commit();
         assertThat(configTable.count()).isOne();
@@ -325,8 +325,8 @@ public class CorfuReplicationClusterConfigIT extends AbstractIT {
         log.info("======standby tail is : " + standbyRuntime.getAddressSpaceView().getAllTails().getStreamTails().get(standbyStream));
 
         // Perform a role switch
-        corfuStore.tx(DefaultClusterManager.CONFIG_NAMESPACE)
-                .update(DefaultClusterManager.CONFIG_TABLE_NAME, DefaultClusterManager.OP_SWITCH,
+        corfuStore.txn(DefaultClusterManager.CONFIG_NAMESPACE)
+                .put(configTable, DefaultClusterManager.OP_SWITCH,
                         DefaultClusterManager.OP_SWITCH, DefaultClusterManager.OP_SWITCH)
                 .commit();
         assertThat(configTable.count()).isOne();
@@ -406,8 +406,8 @@ public class CorfuReplicationClusterConfigIT extends AbstractIT {
         log.info("Log replication succeeds without config change!");
 
         // Perform a config update with two active
-        corfuStore.tx(DefaultClusterManager.CONFIG_NAMESPACE)
-                .update(DefaultClusterManager.CONFIG_TABLE_NAME, DefaultClusterManager.OP_TWO_ACTIVE,
+        corfuStore.txn(DefaultClusterManager.CONFIG_NAMESPACE)
+                .put(configTable, DefaultClusterManager.OP_TWO_ACTIVE,
                         DefaultClusterManager.OP_TWO_ACTIVE, DefaultClusterManager.OP_TWO_ACTIVE)
                 .commit();
         assertThat(configTable.count()).isOne();
@@ -494,8 +494,8 @@ public class CorfuReplicationClusterConfigIT extends AbstractIT {
         log.info("Log replication succeeds without config change!");
 
         // Perform a config update with all standby
-        corfuStore.tx(DefaultClusterManager.CONFIG_NAMESPACE)
-                .update(DefaultClusterManager.CONFIG_TABLE_NAME, DefaultClusterManager.OP_ALL_STANDBY,
+        corfuStore.txn(DefaultClusterManager.CONFIG_NAMESPACE)
+                .put(configTable, DefaultClusterManager.OP_ALL_STANDBY,
                         DefaultClusterManager.OP_ALL_STANDBY, DefaultClusterManager.OP_ALL_STANDBY)
                 .commit();
         assertThat(configTable.count()).isOne();
@@ -582,8 +582,8 @@ public class CorfuReplicationClusterConfigIT extends AbstractIT {
         log.info("Log replication succeeds without config change!");
 
         // Perform a config update with invalid state
-        corfuStore.tx(DefaultClusterManager.CONFIG_NAMESPACE)
-                .update(DefaultClusterManager.CONFIG_TABLE_NAME, DefaultClusterManager.OP_INVALID,
+        corfuStore.txn(DefaultClusterManager.CONFIG_NAMESPACE)
+                .put(configTable, DefaultClusterManager.OP_INVALID,
                         DefaultClusterManager.OP_INVALID, DefaultClusterManager.OP_INVALID)
                 .commit();
         assertThat(configTable.count()).isOne();
@@ -608,8 +608,8 @@ public class CorfuReplicationClusterConfigIT extends AbstractIT {
         log.info("After {} seconds sleep, double check passed", mediumInterval);
 
         // Change to default active standby config
-        corfuStore.tx(DefaultClusterManager.CONFIG_NAMESPACE)
-                .update(DefaultClusterManager.CONFIG_TABLE_NAME, DefaultClusterManager.OP_RESUME,
+        corfuStore.txn(DefaultClusterManager.CONFIG_NAMESPACE)
+                .put(configTable, DefaultClusterManager.OP_RESUME,
                         DefaultClusterManager.OP_RESUME, DefaultClusterManager.OP_RESUME)
                 .commit();
         assertThat(configTable.count()).isEqualTo(2);

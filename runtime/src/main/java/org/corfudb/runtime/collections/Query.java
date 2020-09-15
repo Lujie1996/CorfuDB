@@ -200,7 +200,7 @@ public class Query {
     QueryResult<Entry<K, V>> getByIndex(@Nonnull final String tableName,
                                         @Nonnull final String indexName,
                                         @Nonnull final I indexKey) {
-        return new QueryResult<>(((Table<K, V, M>) getTable(tableName)).getByIndex(indexName, indexKey));
+        return new QueryResult<>(((Table<K, V, M>) getTable(tableName)).getByIndexAsQueryResult(indexName, indexKey));
     }
 
     private <K extends Message, V extends Message, M extends Message, R>

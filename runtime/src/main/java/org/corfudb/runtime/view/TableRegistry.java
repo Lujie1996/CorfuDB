@@ -167,23 +167,23 @@ public class TableRegistry {
         TableMetadata.Builder metadataBuilder = TableMetadata.newBuilder();
         metadataBuilder.setDiskBased(tableOptions.getPersistentDataPath().isPresent());
 
-        // Schema validation to ensure that there is either proper modification of the schema across open calls.
-        // Or no modification to the protobuf files.
-        boolean hasSchemaChanged = false;
-        CorfuRecord<TableDescriptors, TableMetadata> oldRecord = this.registryTable.get(tableNameKey);
-        if (oldRecord != null) {
-            if (!oldRecord.getPayload().getFileDescriptorsMap().equals(tableDescriptors.getFileDescriptorsMap())) {
-                hasSchemaChanged = true;
-                log.error("registerTable: Schema update detected for table "+namespace+" "+ tableName);
-                log.debug("registerTable: old schema:"+oldRecord.getPayload().getFileDescriptorsMap());
-                log.debug("registerTable: new schema:"+tableDescriptors.getFileDescriptorsMap());
-            }
-        }
         int numRetries = 9; // Since this is an internal transaction, retry a few times before giving up.
         long finalAddress = Address.NON_ADDRESS;
         while (numRetries-- > 0) {
+            // Schema validation to ensure that there is either proper modification of the schema across open calls.
+            // Or no modification to the protobuf files.
+            boolean hasSchemaChanged = false;
+            CorfuRecord<TableDescriptors, TableMetadata> oldRecord = this.registryTable.get(tableNameKey);
+            if (oldRecord != null) {
+                if (!oldRecord.getPayload().getFileDescriptorsMap().equals(tableDescriptors.getFileDescriptorsMap())) {
+                    hasSchemaChanged = true;
+                    log.error("registerTable: Schema update detected for table "+namespace+" "+ tableName);
+                    log.debug("registerTable: old schema:"+oldRecord.getPayload().getFileDescriptorsMap());
+                    log.debug("registerTable: new schema:"+tableDescriptors.getFileDescriptorsMap());
+                }
+            }
             try {
-                this.runtime.getObjectsView().TXBuild().type(TransactionType.OPTIMISTIC).build().begin();
+                this.runtime.getObjectsView().TXBuild().type(TransactionType.WRITE_AFTER_WRITE).build().begin();
                 if (hasSchemaChanged) {
                     this.registryTable.put(tableNameKey,
                             new CorfuRecord<>(tableDescriptors, metadataBuilder.build()));
@@ -192,6 +192,7 @@ public class TableRegistry {
                             new CorfuRecord<>(tableDescriptors, metadataBuilder.build()));
                 }
                 finalAddress = this.runtime.getObjectsView().TXEnd();
+                break;
             } catch (TransactionAbortedException txAbort) {
                 if (numRetries <= 0) {
                     throw txAbort;

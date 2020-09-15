@@ -11,7 +11,7 @@ import org.corfudb.protocols.logprotocol.OpaqueEntry;
 import org.corfudb.protocols.logprotocol.SMREntry;
 import org.corfudb.runtime.CorfuRuntime;
 import org.corfudb.runtime.CorfuStoreMetadata;
-import org.corfudb.runtime.collections.TxBuilder;
+import org.corfudb.runtime.collections.TxnContext;
 import org.corfudb.runtime.view.Address;
 import org.corfudb.runtime.view.stream.IStreamView;
 
@@ -109,20 +109,20 @@ public class LogEntryWriter {
             }
         }
 
-        TxBuilder txBuilder = logReplicationMetadataManager.getTxBuilder();
+        TxnContext txnContext = logReplicationMetadataManager.getTxBuilder(logReplicationMetadataManager.getTimestamp());
 
-        logReplicationMetadataManager.appendUpdate(txBuilder, LogReplicationMetadataManager.LogReplicationMetadataType.TOPOLOGY_CONFIG_ID, topologyConfigId);
-        logReplicationMetadataManager.appendUpdate(txBuilder, LogReplicationMetadataManager.LogReplicationMetadataType.LAST_LOG_ENTRY_PROCESSED, entryTs);
+        logReplicationMetadataManager.appendUpdate(txnContext, LogReplicationMetadataManager.LogReplicationMetadataType.TOPOLOGY_CONFIG_ID, topologyConfigId);
+        logReplicationMetadataManager.appendUpdate(txnContext, LogReplicationMetadataManager.LogReplicationMetadataType.LAST_LOG_ENTRY_PROCESSED, entryTs);
 
         for (OpaqueEntry opaqueEntry : newOpaqueEntryList) {
             for (UUID uuid : opaqueEntry.getEntries().keySet()) {
                 for (SMREntry smrEntry : opaqueEntry.getEntries().get(uuid)) {
-                    txBuilder.logUpdate(uuid, smrEntry);
+                    txnContext.logUpdate(uuid, smrEntry);
                 }
             }
         }
 
-        txBuilder.commit(timestamp);
+        txnContext.commit();
         lastMsgTs = Math.max(entryTs, lastMsgTs);
     }
 
